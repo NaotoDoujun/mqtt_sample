@@ -27,7 +27,7 @@ namespace EdgeNode.Services
     private int executionCountGRPC = 0;
     private int executionCountAMQP = 0;
     private int executionCountMQTT = 0;
-    private readonly int timespan = 100;
+    private readonly int timespan = 1000;
     private readonly string nodeId = Guid.NewGuid().ToString();
 
     public MainService(IBus bus, IServiceScopeFactory scopeFactory, ILogger<MainService> logger)
