@@ -38,7 +38,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache({
     typePolicies: {
       Counter: {
-        keyFields: ["id"],
+        keyFields: ["nodeId"],
       },
     }
   })

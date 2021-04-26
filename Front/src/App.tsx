@@ -3,7 +3,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 import { CssBaseline, AppBar, Toolbar, Typography } from '@material-ui/core'
 import { createMuiTheme, ThemeProvider, makeStyles } from '@material-ui/core/styles'
 import { BrowserRouter, Route, Switch } from 'react-router-dom'
-import { Count, Sub } from './components'
+import { Count } from './components'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,7 +53,6 @@ function App() {
           <main className={classes.content}>
             <Switch>
               <Route exact path='/' component={Count} />
-              <Route path='/sub' component={Sub} />
             </Switch>
           </main>
         </div>

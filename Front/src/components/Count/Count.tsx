@@ -1,7 +1,15 @@
 import React from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { CircularProgress, Button } from '@material-ui/core'
-import { Link } from 'react-router-dom'
+import {
+  Paper,
+  CircularProgress,
+  TableContainer,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
+} from '@material-ui/core';
 
 interface Counter {
   id: number
@@ -12,7 +20,7 @@ interface Counter {
 
 const COUNT_QUERY = gql`
   query Counters {
-    counters {
+    latests {
       id
       nodeId
       count
@@ -40,9 +48,10 @@ const Count: React.FC<any> = (props: any) => {
       document: COUNT_SUBSCRIPTION,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev
-        const newCount = subscriptionData.data.onRecorded
+        const newCount = subscriptionData.data.onRecorded;
+        const prevCounts = [...prev.latests].filter(c => c.nodeId !== newCount.nodeId)
         return Object.assign({}, prev, {
-          counters: [...prev.counters, newCount],
+          latests: [newCount, ...prevCounts],
         })
       },
     }),
@@ -51,8 +60,6 @@ const Count: React.FC<any> = (props: any) => {
 
   if (loading) return <CircularProgress />
   if (error) return <p>Got Error...</p>
-
-  const latest = data.counters.slice(-1)[0] as Counter
 
   const convUTC2JST = (value: string): string => {
     const date = new Date(value);
@@ -70,11 +77,28 @@ const Count: React.FC<any> = (props: any) => {
   return (
     <div>
       <h5>Counter</h5>
-      <p>id is {latest.id}, latest count is {latest.count}</p>
-      <p>recorded at {convUTC2JST(latest.recordTime)}</p>
-      <Button variant="contained" component={Link} to="sub">
-        Sub
-      </Button>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Id</TableCell>
+              <TableCell>NodeId</TableCell>
+              <TableCell>Count</TableCell>
+              <TableCell>RecordTime</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.latests.map((counter: Counter, index: number) =>
+              <TableRow key={index}>
+                <TableCell>{counter.id}</TableCell>
+                <TableCell>{counter.nodeId}</TableCell>
+                <TableCell>{counter.count}</TableCell>
+                <TableCell>{convUTC2JST(counter.recordTime)}</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 }
