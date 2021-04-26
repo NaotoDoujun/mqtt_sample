@@ -1,0 +1,35 @@
+version: '3'
+services:
+  broker:
+    image: broker
+    container_name: Broker
+    hostname: broker.local
+    ports:
+      - 15672:15672
+      - 5672:5672
+      - 1883:1883
+      - 8883:8883
+    volumes:
+      - ./docker_storage/broker/mnesia:/var/lib/rabbitmq/mnesia
+  bff:
+    image: bff
+    container_name: ManagerBff
+    hostname: bff.local
+    ports: 
+      - 5000:5000
+      - 5001:5001
+    depends_on:
+        - broker
+  front:
+    image: front
+    container_name: ManagerFront
+    ports:
+      - 80:80
+    depends_on: 
+      - bff
+  edgenode:
+    image: edgenode
+    container_name: EdgeNode
+    hostname: edgenode.local
+    depends_on:
+      - broker
