@@ -16,7 +16,6 @@ services:
     container_name: ManagerBff
     hostname: bff.local
     ports: 
-      - 5000:5000
       - 5001:5001
     depends_on:
         - broker

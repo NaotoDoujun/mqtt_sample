@@ -36,7 +36,7 @@ namespace EdgeNode.Services
       _bus = bus;
       _scopeFactory = scopeFactory;
       _logger = logger;
-      _channel = GrpcChannel.ForAddress("https://bff.local:5001");
+      _channel = GrpcChannel.ForAddress("https://bff.local:5002");
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -78,34 +78,41 @@ namespace EdgeNode.Services
         try
         {
           var query = dbContext.Counters.AsEnumerable();
-          var sendCounters = new List<Common.Proto.Counter>();
+          var sendCounters = new List<Common.Proto.CounterRequest>();
           foreach (var record in query)
           {
-            sendCounters.Add(new Common.Proto.Counter
+            sendCounters.Add(new Common.Proto.CounterRequest
             {
               NodeId = record.NodeId,
               Count = record.Count,
               RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(record.RecordTime.ToUniversalTime())
             });
           }
-          sendCounters.Add(new Common.Proto.Counter
+          sendCounters.Add(new Common.Proto.CounterRequest
           {
             NodeId = nodeId,
             Count = count,
             RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.Now.ToUniversalTime())
           });
           var stream = client.Count();
-          await stream.RequestStream.WriteAsync(new Counters
+          await stream.RequestStream.WriteAsync(new CounterRequests
           {
             Counter = { sendCounters }
           });
           await stream.RequestStream.CompleteAsync();
           var reply = await stream.ResponseAsync;
-          if (reply is Common.Proto.Empty && dbContext.Counters.Count() > 0)
+          if (reply.MessageType == Common.Proto.Type.Success)
           {
-            _logger.LogInformation("[gRPC] succeeded. going to delete localDb records");
-            dbContext.Counters.RemoveRange(query);
-            await dbContext.SaveChangesAsync();
+            if (dbContext.Counters.Count() > 0)
+            {
+              _logger.LogInformation("[gRPC] succeeded. going to delete localDb records");
+              dbContext.Counters.RemoveRange(query);
+              await dbContext.SaveChangesAsync();
+            }
+          }
+          else
+          {
+            _logger.LogError("[gRPC] got failed message from server. Message:{Message}", reply.Message);
           }
         }
         catch

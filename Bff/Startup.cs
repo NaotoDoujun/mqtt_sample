@@ -126,7 +126,7 @@ namespace Bff
         endpoints.MapGraphQL().WithOptions(
             new GraphQLServerOptions
             {
-              Tool = { Enable = env.IsDevelopment() ? true : true }
+              Tool = { Enable = env.IsDevelopment() ? true : false }
             });
       });
     }

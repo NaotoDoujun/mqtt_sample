@@ -1,28 +1,37 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "Common.Proto";
 
 service CounterProto {
-    rpc Count (stream Counters) returns (Empty);
-    rpc FileSend (stream Chunk) returns (Empty);
-}
-
-message Empty {
+    rpc Count (stream CounterRequests) returns (CounterReply);
+    rpc FileSend (stream Chunk) returns (google.protobuf.Empty);
 }
 
 message Chunk {
     bytes chunk = 1;
 }
 
-message Counter {
+message CounterRequest {
     int32 id = 1;
     string node_id = 2;
     int32 count = 3;
     google.protobuf.Timestamp record_time = 4;
 }
 
-message Counters {
-    repeated Counter counter = 1;
+message CounterRequests {
+    repeated CounterRequest counter = 1;
+}
+
+enum Type {
+    SUCCESS = 0;
+    FAILURE = 1;
+}
+
+message CounterReply 
+{
+    Type message_type = 1;
+    string message = 2;
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
@@ -22,22 +23,19 @@ namespace Bff.Services
       _logger = logger;
     }
 
-    public override async Task<Empty> Count(IAsyncStreamReader<Counters> stream, ServerCallContext context)
+    public override async Task<Common.Proto.CounterReply> Count(IAsyncStreamReader<Common.Proto.CounterRequests> stream, ServerCallContext context)
     {
       using var scope = _scopeFactory.CreateScope();
-      List<Common.Proto.Counter> counters = new List<Common.Proto.Counter>();
+      List<Common.Proto.CounterRequest> counters = new List<Common.Proto.CounterRequest>();
       var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
       var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
       await Semaphore.WaitAsync().ConfigureAwait(false);
       try
       {
-        while (await stream.MoveNext(CancellationToken.None))
+        await foreach (var message in stream.ReadAllAsync())
         {
-          var request = stream.Current;
-          var counter = request.Counter;
-          counters.AddRange(counter);
+          counters.AddRange(message.Counter);
         }
-        if (counters.Count > 1) _logger.LogInformation("counters size: {Count}", counters.Count);
         foreach (var c in counters)
         {
           await dbContext.Counters.AddAsync(new Bff.Models.Counter
@@ -50,7 +48,19 @@ namespace Bff.Services
         }
         await dbContext.SaveChangesAsync();
         if (dbContext.Counters.Count() > 0) await eventSender.SendAsync("ReturnedCounter", dbContext.Counters.OrderByDescending(c => c.RecordTime).FirstOrDefault());
-        return new Empty();
+        return new Common.Proto.CounterReply
+        {
+          MessageType = Common.Proto.Type.Success
+        };
+      }
+      catch (Exception e)
+      {
+        _logger.LogError(e.Message);
+        return new Common.Proto.CounterReply
+        {
+          MessageType = Common.Proto.Type.Failure,
+          Message = e.Message
+        };
       }
       finally
       {
@@ -58,7 +68,7 @@ namespace Bff.Services
       }
     }
 
-    public override async Task<Empty> FileSend(IAsyncStreamReader<Chunk> stream, ServerCallContext context)
+    public override async Task<Google.Protobuf.WellKnownTypes.Empty> FileSend(IAsyncStreamReader<Common.Proto.Chunk> stream, ServerCallContext context)
     {
       List<byte> bytes = new List<byte>();
       while (await stream.MoveNext(CancellationToken.None))
@@ -70,7 +80,7 @@ namespace Bff.Services
 
       _logger.LogInformation("file size: {Count}", bytes.Count);
       //_logger.LogInformation(BitConverter.ToString(bytes.ToArray()));
-      return new Empty();
+      return new Google.Protobuf.WellKnownTypes.Empty();
     }
   }
 }
