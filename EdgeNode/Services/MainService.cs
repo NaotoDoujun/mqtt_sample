@@ -57,9 +57,9 @@ namespace EdgeNode.Services
 
     private async void HandleTimerCallback(object state)
     {
-      //await CountAsGRPCAsync();
+      await CountAsGRPCAsync();
       //await CountAsAMQPAsync();
-      await CountAsMQTTAsync();
+      //await CountAsMQTTAsync();
     }
 
     // gRPC

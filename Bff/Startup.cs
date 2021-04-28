@@ -1,9 +1,11 @@
 using Autofac;
+using System;
 using System.Net.Mime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +72,9 @@ namespace Bff
 
         x.UsingRabbitMq((context, cfg) =>
         {
+          // configure health checks for this bus instance
+          cfg.UseHealthCheck(context);
+
           cfg.Host("broker.local", h =>
           {
             h.Username("rabbitmq");
@@ -89,7 +94,13 @@ namespace Bff
           cfg.ConfigureEndpoints(context);
         });
       });
-      services.AddMassTransitHostedService(true);
+
+      services.Configure<HealthCheckPublisherOptions>(options =>
+      {
+        options.Delay = TimeSpan.FromSeconds(2);
+        options.Predicate = (check) => check.Tags.Contains("ready");
+      });
+      services.AddMassTransitHostedService();
     }
 
     public void ConfigureContainer(ContainerBuilder builder)

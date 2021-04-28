@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -31,6 +33,9 @@ namespace EdgeNode
               {
                 x.UsingRabbitMq((context, cfg) =>
                 {
+                  // configure health checks for this bus instance
+                  cfg.UseHealthCheck(context);
+
                   cfg.Host("broker.local", h =>
                   {
                     h.Username("rabbitmq");
@@ -39,7 +44,12 @@ namespace EdgeNode
                   cfg.ConfigureEndpoints(context);
                 });
               });
-              services.AddMassTransitHostedService(true);
+              services.Configure<HealthCheckPublisherOptions>(options =>
+              {
+                options.Delay = TimeSpan.FromSeconds(2);
+                options.Predicate = (check) => check.Tags.Contains("ready");
+              });
+              services.AddMassTransitHostedService();
             })
             .ConfigureContainer<ContainerBuilder>(builder =>
             {
