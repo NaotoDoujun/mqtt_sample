@@ -15,7 +15,7 @@ FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
 WORKDIR /app
 
 # certificates
-COPY EdgeNode/key/rootCA.pem /usr/share/ca-certificates/mkcert.crt
+COPY key/rootCA.pem /usr/share/ca-certificates/mkcert.crt
 RUN cd /etc/ && echo "mkcert.crt" >> ca-certificates.conf && update-ca-certificates
 
 COPY --from=build /app/EdgeNode/out ./

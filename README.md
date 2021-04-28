@@ -5,7 +5,7 @@ MassTransit 7.1.8
 https://masstransit-project.com
 
 ## Make certification files
-Make locally-trusted development certificates and put them into key folders.  
+Make locally-trusted development certificates and put them into key folder.  
 https://github.com/FiloSottile/mkcert
 ```
 $ mkcert -install

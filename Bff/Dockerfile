@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 WORKDIR /app
 
 # certificates
-COPY Bff/key /key
+COPY key /key
 RUN openssl pkcs12 -export -out server.pfx -inkey /key/server.key -in /key/server.crt -passin pass:localstack -passout pass:localstack
 
 # copy everything else and build app
