@@ -25,15 +25,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos/Proto.proto" LinkBase="Protos/Proto.proto" GrpcServices="Client" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Update="nlog.config" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\Common\Proto.proto" GrpcServices="Client" />
   </ItemGroup>
   
 </Project>

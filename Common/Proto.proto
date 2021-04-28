@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-option csharp_namespace = "GrpcProto";
+option csharp_namespace = "Common.Proto";
 
 service CounterProto {
     rpc Count (stream Counters) returns (Empty);

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Subscriptions;
 using Grpc.Core;
-using GrpcProto;
+using Common.Proto;
 using Bff.Models;
 namespace Bff.Services
 {
@@ -25,7 +25,7 @@ namespace Bff.Services
     public override async Task<Empty> Count(IAsyncStreamReader<Counters> stream, ServerCallContext context)
     {
       using var scope = _scopeFactory.CreateScope();
-      List<GrpcProto.Counter> counters = new List<GrpcProto.Counter>();
+      List<Common.Proto.Counter> counters = new List<Common.Proto.Counter>();
       var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
       var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
       await Semaphore.WaitAsync().ConfigureAwait(false);

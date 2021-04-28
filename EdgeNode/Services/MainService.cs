@@ -13,6 +13,7 @@ using MQTTnet;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
 using EdgeNode.Models;
+using Common.Proto;
 namespace EdgeNode.Services
 {
   public class MainService : IHostedService, IDisposable
@@ -67,7 +68,7 @@ namespace EdgeNode.Services
     {
       using var scope = _scopeFactory.CreateScope();
       var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-      var client = new GrpcProto.CounterProto.CounterProtoClient(_channel);
+      var client = new CounterProto.CounterProtoClient(_channel);
       await Semaphore.WaitAsync().ConfigureAwait(false);
       try
       {
@@ -77,28 +78,30 @@ namespace EdgeNode.Services
         try
         {
           var query = dbContext.Counters.AsEnumerable();
-          var sendCounters = new List<GrpcProto.Counter>();
+          var sendCounters = new List<Common.Proto.Counter>();
           foreach (var record in query)
           {
-            sendCounters.Add(new GrpcProto.Counter
+            sendCounters.Add(new Common.Proto.Counter
             {
               NodeId = record.NodeId,
               Count = record.Count,
               RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(record.RecordTime.ToUniversalTime())
             });
           }
-          sendCounters.Add(new GrpcProto.Counter
+          sendCounters.Add(new Common.Proto.Counter
           {
             NodeId = nodeId,
             Count = count,
             RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.Now.ToUniversalTime())
           });
-          var reply = await client.CountAsync(new GrpcProto.Counters
+          var stream = client.Count();
+          await stream.RequestStream.WriteAsync(new Counters
           {
-            Counter = { sendCounters },
-          },
-          deadline: DateTime.UtcNow.AddMilliseconds(timespan));
-          if (reply is GrpcProto.Empty && dbContext.Counters.Count() > 0)
+            Counter = { sendCounters }
+          });
+          await stream.RequestStream.CompleteAsync();
+          var reply = await stream.ResponseAsync;
+          if (reply is Common.Proto.Empty && dbContext.Counters.Count() > 0)
           {
             _logger.LogInformation("[gRPC] succeeded. going to delete localDb records");
             dbContext.Counters.RemoveRange(query);
@@ -107,7 +110,7 @@ namespace EdgeNode.Services
         }
         catch
         {
-          var counter = new Counter
+          var counter = new EdgeNode.Models.Counter
           {
             NodeId = nodeId,
             Count = count,
@@ -136,7 +139,7 @@ namespace EdgeNode.Services
         if (executionCountAMQP >= 100) executionCountAMQP = 0;
         var count = Interlocked.Increment(ref executionCountAMQP);
         _logger.LogInformation("[AMQP] Counter is working. Count: {Count}", count);
-        var counter = new Counter
+        var counter = new EdgeNode.Models.Counter
         {
           NodeId = nodeId,
           Count = count,
@@ -182,7 +185,7 @@ namespace EdgeNode.Services
         if (executionCountMQTT >= 100) executionCountMQTT = 0;
         var count = Interlocked.Increment(ref executionCountMQTT);
         _logger.LogInformation("[MQTT] Counter is working. Count: {Count}", count);
-        var counter = new Counter
+        var counter = new EdgeNode.Models.Counter
         {
           NodeId = nodeId,
           Count = count,
