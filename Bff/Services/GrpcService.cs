@@ -26,12 +26,12 @@ namespace Bff.Services
     public override async Task<Common.Proto.CounterReply> Count(IAsyncStreamReader<Common.Proto.CounterRequests> stream, ServerCallContext context)
     {
       using var scope = _scopeFactory.CreateScope();
-      List<Common.Proto.CounterRequest> counters = new List<Common.Proto.CounterRequest>();
-      var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-      var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
       await Semaphore.WaitAsync().ConfigureAwait(false);
       try
       {
+        List<Common.Proto.CounterRequest> counters = new List<Common.Proto.CounterRequest>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
         await foreach (var message in stream.ReadAllAsync())
         {
           counters.AddRange(message.Counter);

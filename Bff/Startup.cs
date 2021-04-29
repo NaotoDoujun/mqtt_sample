@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using MassTransit.Mqtt.MessageQueue.Serialisation;
 using HotChocolate;
-using HotChocolate.AspNetCore;
 using Newtonsoft.Json;
 using Bff.Models;
 using Bff.Services;
@@ -42,7 +41,7 @@ namespace Bff
       {
         options.AddDefaultPolicy(
                   builder => builder
-                      .WithOrigins("https://localhost:3000", "https://localhost", "http://localhost:3000", "http://localhost")
+                      .WithOrigins("https://localhost:3000", "http://localhost:3000")
                       .AllowAnyMethod()
                       .AllowAnyHeader()
               );
@@ -116,18 +115,20 @@ namespace Bff
         app.UseDeveloperExceptionPage();
       }
 
-      app.UseWebSockets();
-      app.UseRouting();
-      app.UseCors();
-      app.UseEndpoints(endpoints =>
+      // http2
+      app.MapWhen(context => context.Request.Protocol.Contains("2"), a =>
       {
-        endpoints.MapGrpcService<GrpcService>();
-        if (env.IsDevelopment()) endpoints.MapGrpcReflectionService();
-        endpoints.MapGraphQL().WithOptions(
-            new GraphQLServerOptions
-            {
-              Tool = { Enable = env.IsDevelopment() ? true : false }
-            });
+        a.UseRouting();
+        a.UseEndpoints(endpoints => endpoints.MapGrpcService<GrpcService>());
+      });
+
+      // http1
+      app.MapWhen(context => context.Request.Protocol.Contains("1"), a =>
+      {
+        a.UseWebSockets();
+        a.UseRouting();
+        a.UseCors();
+        a.UseEndpoints(endpoints => endpoints.MapGraphQL());
       });
     }
   }
