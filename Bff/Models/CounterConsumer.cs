@@ -41,7 +41,7 @@ namespace Bff.Models
         await dbContext.Counters.AddAsync(counter);
         await dbContext.SaveChangesAsync();
         await eventSender.SendAsync("ReturnedCounter", counter);
-        _logger.LogInformation("[AMQP] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime);
+        _logger.LogInformation("[AMQP] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
       }
       catch (Exception e)
       {

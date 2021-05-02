@@ -51,7 +51,7 @@ namespace Bff.Services
           };
           await eventSender.SendAsync("ReturnedCounter", counter);
           await dbContext.Counters.AddAsync(counter);
-          _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime);
+          _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
         }
         await dbContext.SaveChangesAsync();
         return new Common.Proto.CounterReply

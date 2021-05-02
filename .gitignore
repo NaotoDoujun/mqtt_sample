@@ -7,5 +7,5 @@ rootCA.pem
 server.key
 server.crt
 docker_storage
-bff.db
-node.db
+bff.db*
+node.db*
