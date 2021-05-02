@@ -17,7 +17,8 @@ namespace Bff.Services
     private readonly ILogger<GrpcService> _logger;
     private readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
 
-    public GrpcService(IServiceScopeFactory scopeFactory, ILogger<GrpcService> logger)
+    public GrpcService(IServiceScopeFactory scopeFactory,
+      ILogger<GrpcService> logger)
     {
       _scopeFactory = scopeFactory;
       _logger = logger;
@@ -25,29 +26,34 @@ namespace Bff.Services
 
     public override async Task<Common.Proto.CounterReply> Count(IAsyncStreamReader<Common.Proto.CounterRequests> stream, ServerCallContext context)
     {
-      using var scope = _scopeFactory.CreateScope();
       await Semaphore.WaitAsync().ConfigureAwait(false);
       try
       {
+        using var scope = _scopeFactory.CreateScope();
         List<Common.Proto.CounterRequest> counters = new List<Common.Proto.CounterRequest>();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
+        // keep 3min records
+        var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
+        var over = dbContext.Counters.Where(c => c.RecordTime <= limit).ToArray();
+        if (over.Length > 0) dbContext.Counters.RemoveRange(over);
         await foreach (var message in stream.ReadAllAsync())
         {
           counters.AddRange(message.Counter);
         }
         foreach (var c in counters)
         {
-          await dbContext.Counters.AddAsync(new Bff.Models.Counter
+          var counter = new Bff.Models.Counter
           {
             NodeId = c.NodeId,
             Count = c.Count,
             RecordTime = c.RecordTime.ToDateTime()
-          });
-          _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", c.Count, c.RecordTime);
+          };
+          await eventSender.SendAsync("ReturnedCounter", counter);
+          await dbContext.Counters.AddAsync(counter);
+          _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime);
         }
         await dbContext.SaveChangesAsync();
-        if (dbContext.Counters.Count() > 0) await eventSender.SendAsync("ReturnedCounter", dbContext.Counters.OrderByDescending(c => c.RecordTime).FirstOrDefault());
         return new Common.Proto.CounterReply
         {
           MessageType = Common.Proto.Type.Success

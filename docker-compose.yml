@@ -17,6 +17,7 @@ services:
     hostname: bff.local
     ports: 
       - 5001:5001
+      - 5002:5002
   front:
     image: front
     container_name: ManagerFront

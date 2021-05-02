@@ -19,4 +19,7 @@ COPY key/rootCA.pem /usr/share/ca-certificates/mkcert.crt
 RUN cd /etc/ && echo "mkcert.crt" >> ca-certificates.conf && update-ca-certificates
 
 COPY --from=build /app/EdgeNode/out ./
-ENTRYPOINT ["dotnet", "EdgeNode.dll"]
+
+# you can set serviceType(GRPC, AMQP, MQTT) and timeSpan(ms)
+#ENTRYPOINT ["dotnet", "EdgeNode.dll"]
+ENTRYPOINT ["dotnet", "EdgeNode.dll", "-s", "MQTT", "-t", "100"]

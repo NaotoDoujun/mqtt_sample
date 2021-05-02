@@ -9,9 +9,9 @@ namespace Bff.Models
       return context.Counters.AsQueryable();
     }
 
-    public IQueryable<Counter> GetCounter(int id, [Service] ApplicationDbContext context)
+    public IQueryable<Counter> GetCounter(string nodeId, [Service] ApplicationDbContext context)
     {
-      return context.Counters.Where(counter => counter.Id == id);
+      return context.Counters.Where(counter => counter.NodeId == nodeId);
     }
 
     public IQueryable<Counter> GetLatests([Service] ApplicationDbContext context)

@@ -1,0 +1,10 @@
+.vscode
+Bff/bin
+Bff/obj
+Bff/Migrations
+Bff/bff.db
+Front/node_modules
+EdgeNode/bin
+EdgeNode/obj
+EdgeNode/Migrations
+EdgeNode/node.db

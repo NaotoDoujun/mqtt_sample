@@ -12,7 +12,6 @@ import {
 } from '@material-ui/core';
 
 interface Counter {
-  id: number
   nodeId: string
   count: number
   recordTime: string
@@ -21,7 +20,6 @@ interface Counter {
 const COUNT_QUERY = gql`
   query Counters {
     latests {
-      id
       nodeId
       count
       recordTime
@@ -32,7 +30,6 @@ const COUNT_QUERY = gql`
 const COUNT_SUBSCRIPTION = gql`
   subscription OnRecorded {
     onRecorded {
-      id
       nodeId
       count
       recordTime
@@ -81,7 +78,6 @@ const Count: React.FC<any> = (props: any) => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Id</TableCell>
               <TableCell>NodeId</TableCell>
               <TableCell>Count</TableCell>
               <TableCell>RecordTime</TableCell>
@@ -90,7 +86,6 @@ const Count: React.FC<any> = (props: any) => {
           <TableBody>
             {data.latests.map((counter: Counter, index: number) =>
               <TableRow key={index}>
-                <TableCell>{counter.id}</TableCell>
                 <TableCell>{counter.nodeId}</TableCell>
                 <TableCell>{counter.count}</TableCell>
                 <TableCell>{convUTC2JST(counter.recordTime)}</TableCell>

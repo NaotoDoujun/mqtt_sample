@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,22 +22,30 @@ namespace Bff.Models
 
     public async Task Consume(ConsumeContext<Common.ICounter> context)
     {
-      using var scope = _scopeFactory.CreateScope();
-      var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-      var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
       await Semaphore.WaitAsync().ConfigureAwait(false);
       try
       {
+        using var scope = _scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
         var counter = new Counter
         {
           NodeId = context.Message.NodeId,
           Count = context.Message.Count,
           RecordTime = context.Message.RecordTime
         };
+        // keep 3min records
+        var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
+        var over = dbContext.Counters.Where(c => c.RecordTime <= limit).ToArray();
+        if (over.Length > 0) dbContext.Counters.RemoveRange(over);
         await dbContext.Counters.AddAsync(counter);
         await dbContext.SaveChangesAsync();
-        if (dbContext.Counters.Count() > 0) await eventSender.SendAsync("ReturnedCounter", dbContext.Counters.OrderByDescending(c => c.RecordTime).FirstOrDefault());
+        await eventSender.SendAsync("ReturnedCounter", counter);
         _logger.LogInformation("[AMQP] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime);
+      }
+      catch (Exception e)
+      {
+        _logger.LogError(e.Message);
       }
       finally
       {

@@ -1,18 +1,15 @@
 using Autofac;
 using System;
-using System.Net.Mime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using MassTransit;
-using MassTransit.Mqtt.MessageQueue.Serialisation;
 using HotChocolate;
-using Newtonsoft.Json;
+using Common;
 using Bff.Models;
 using Bff.Services;
 namespace Bff
@@ -47,7 +44,7 @@ namespace Bff
               );
       });
 
-      // masstransit
+      // masstransit (AMQP)
       ConfigureMassTransitService(services);
 
       // graphql
@@ -65,31 +62,20 @@ namespace Bff
 
     private void ConfigureMassTransitService(IServiceCollection services)
     {
+      var brokerSettings = Configuration.GetSection("BrokerSettings").Get<BrokerSettings>();
       services.AddMassTransit(x =>
       {
-        //x.AddConsumer<CounterConsumer>();
-
+        x.AddConsumer<CounterConsumer>();
         x.UsingRabbitMq((context, cfg) =>
         {
           // configure health checks for this bus instance
           cfg.UseHealthCheck(context);
 
-          cfg.Host("broker.local", h =>
+          cfg.Host(brokerSettings.Host, h =>
           {
-            h.Username("rabbitmq");
-            h.Password("rabbitmq");
+            h.Username(brokerSettings.Username);
+            h.Password(brokerSettings.Password);
           });
-
-          // just for MQTT
-          cfg.ClearMessageDeserializers();
-          var deserializer = JsonSerializer.CreateDefault();
-          var jsonContent = new ContentType("application/json");
-          cfg.AddMessageDeserializer(jsonContent, () => new RawJsonMessageDeserializer(jsonContent, deserializer));
-          cfg.ReceiveEndpoint("masstransit.mqtt", e =>
-          {
-            e.Consumer(() => new MqttConsumer(context.GetService<IServiceScopeFactory>(), context.GetService<ILogger<MqttConsumer>>()));
-          });
-
           cfg.ConfigureEndpoints(context);
         });
       });
