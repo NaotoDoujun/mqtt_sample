@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Common;
 namespace Bff.Models
 {
   public class ApplicationDbContext : DbContext

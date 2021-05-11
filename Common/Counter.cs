@@ -1,7 +1,7 @@
 using System;
-namespace Bff.Models
+namespace Common
 {
-  public class Counter : Common.ICounter
+  public class Counter : ICounter
   {
     public int Id { get; set; }
     public string NodeId { get; set; }

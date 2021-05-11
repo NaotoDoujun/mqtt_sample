@@ -1,5 +1,6 @@
 using System.Linq;
 using HotChocolate;
+using Common;
 namespace Bff.Models
 {
   public class Query

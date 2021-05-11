@@ -98,7 +98,7 @@ namespace Bff.Services
         var counters = JsonSerializer.Deserialize<IEnumerable<Common.Proto.CounterRequest>>(payload);
         foreach (var c in counters)
         {
-          var counter = new Bff.Models.Counter
+          var counter = new Common.Counter
           {
             NodeId = c.NodeId,
             Count = c.Count,

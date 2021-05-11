@@ -132,7 +132,7 @@ namespace EdgeNode.Services
         }
         else
         {
-          var counter = new EdgeNode.Models.Counter
+          var counter = new Common.Counter
           {
             NodeId = _serviceSettings.NodeId,
             Count = count,
@@ -140,7 +140,7 @@ namespace EdgeNode.Services
           };
           await dbContext.Counters.AddAsync(counter);
           await dbContext.SaveChangesAsync();
-          _logger.LogWarning("[MQTT] failed. Recorded to localDb: {Counter}", counter);
+          _logger.LogWarning("[MQTT] failed. Recorded to localDb: {Count}", count);
         }
       }
       finally

@@ -43,7 +43,7 @@ namespace Bff.Services
         }
         foreach (var c in counters)
         {
-          var counter = new Bff.Models.Counter
+          var counter = new Common.Counter
           {
             NodeId = c.NodeId,
             Count = c.Count,

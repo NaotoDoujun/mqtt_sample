@@ -2,7 +2,9 @@
 
 For comparison each protocols.  
 MassTransit 7.1.8  
-https://masstransit-project.com
+https://masstransit-project.com  
+MQTTnet  
+https://github.com/chkr1011/MQTTnet  
 
 ## Make certification files
 Make locally-trusted development certificates and put them into key folder.  
@@ -10,6 +12,15 @@ https://github.com/FiloSottile/mkcert
 ```
 $ mkcert -install
 $ mkcert broker.local bff.local edgenode.local localhost 127.0.0.1 ::1
+```
+Created files should rename like this.
+```
+$ mv broker.local+5-key.pem server.key
+$ mv broker.local+5.pem server.crt
+```
+Wheres my rootCA?
+```
+$ mkcert -CAROOT
 ```
 
 ## Build Container Images
@@ -37,4 +48,11 @@ docker build -t broker -f Broker/Dockerfile .
 ## Launch
 ```
 docker-compose up -d
+```
+
+## ServiceType and TimeSpan Settings
+Check out EdgeNode Dockerfile
+```
+# you can set serviceType(GRPC, AMQP, MQTT) and timeSpan(ms)
+ENTRYPOINT ["dotnet", "EdgeNode.dll", "-s", "MQTT", "-t", "1000"]
 ```

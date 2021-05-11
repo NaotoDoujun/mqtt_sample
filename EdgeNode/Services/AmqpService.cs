@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MassTransit;
 using MassTransit.Monitoring.Health;
+using Common;
 using EdgeNode.Models;
 namespace EdgeNode.Services
 {
@@ -76,7 +77,7 @@ namespace EdgeNode.Services
         if (executionCount >= 100) executionCount = 0;
         var count = Interlocked.Increment(ref executionCount);
         _logger.LogInformation("[AMQP] Counter is working. Count: {Count}", count);
-        var counter = new EdgeNode.Models.Counter
+        var counter = new Counter
         {
           NodeId = _serviceSettings.NodeId,
           Count = count,
@@ -102,7 +103,7 @@ namespace EdgeNode.Services
         {
           await dbContext.Counters.AddAsync(counter);
           await dbContext.SaveChangesAsync();
-          _logger.LogWarning("[AMQP] failed. so, recorded to localDb: {Counter}", counter);
+          _logger.LogWarning("[AMQP] failed. so, recorded to localDb: {Count}", counter.Count);
         }
       }
       finally

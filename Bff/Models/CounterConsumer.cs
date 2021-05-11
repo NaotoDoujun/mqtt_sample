@@ -6,6 +6,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Subscriptions;
+using Common;
 namespace Bff.Models
 {
   public class CounterConsumer : IConsumer<Common.ICounter>
