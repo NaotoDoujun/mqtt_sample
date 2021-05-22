@@ -8,5 +8,7 @@ namespace Bff.Models
         : base(options) { }
 
     public DbSet<Counter> Counters { get; set; }
+
+    public DbSet<Log> Logs { get; set; }
   }
 }

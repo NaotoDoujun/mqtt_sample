@@ -1,20 +1,19 @@
 using System.Linq;
+using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Data;
+using HotChocolate.Types;
 using Common;
 namespace Bff.Models
 {
   public class Query
   {
-    public IQueryable<Counter> GetCounters([Service] ApplicationDbContext context)
-    {
-      return context.Counters.AsQueryable();
-    }
+    [UseOffsetPaging(IncludeTotalCount = true)]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<Log> GetLogs([Service] ApplicationDbContext context) => context.Logs.AsQueryable();
 
-    public IQueryable<Counter> GetCounter(string nodeId, [Service] ApplicationDbContext context)
-    {
-      return context.Counters.Where(counter => counter.NodeId == nodeId);
-    }
-
+    [UseOffsetPaging(IncludeTotalCount = true)]
     public IQueryable<Counter> GetLatests([Service] ApplicationDbContext context)
     {
       var subquery = from c in context.Counters
@@ -31,5 +30,9 @@ namespace Bff.Models
                   select c;
       return query;
     }
+
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<Log> GetLogsForChart([Service] ApplicationDbContext context) => context.Logs.AsQueryable();
   }
 }

@@ -123,7 +123,7 @@ namespace EdgeNode.Services
           .WithAtLeastOnceQoS()
           .Build();
           await _client.PublishAsync(message, CancellationToken.None);
-          if (dbContext.Counters.Count() > 0)
+          if (dbContext.Counters.Any())
           {
             _logger.LogInformation("[MQTT] succeeded. going to delete localDb records");
             dbContext.Counters.RemoveRange(query);

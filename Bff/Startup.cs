@@ -57,6 +57,8 @@ namespace Bff
               .AddQueryType<Query>()
               .AddSubscriptionType<Subscription>()
               .AddType<Counter>()
+              .AddFiltering()
+              .AddSorting()
               .AddInMemorySubscriptions();
     }
 

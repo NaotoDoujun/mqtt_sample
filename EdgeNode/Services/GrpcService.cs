@@ -105,7 +105,7 @@ namespace EdgeNode.Services
           var reply = await stream.ResponseAsync;
           if (reply.MessageType == Common.Proto.Type.Success)
           {
-            if (dbContext.Counters.Count() > 0)
+            if (dbContext.Counters.Any())
             {
               _logger.LogInformation("[gRPC] succeeded. going to delete localDb records");
               dbContext.Counters.RemoveRange(query);

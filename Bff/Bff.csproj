@@ -9,6 +9,7 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.37.0" />
     <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.37.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="11.2.2" />
+    <PackageReference Include="HotChocolate.Data" Version="11.2.2" />
     <PackageReference Include="MassTransit.AspNetCore" Version="7.1.8" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="7.1.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.3">

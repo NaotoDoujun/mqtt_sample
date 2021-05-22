@@ -30,29 +30,53 @@ namespace Bff.Services
       try
       {
         using var scope = _scopeFactory.CreateScope();
-        List<Common.Proto.CounterRequest> counters = new List<Common.Proto.CounterRequest>();
+        var counters = new List<Common.Proto.CounterRequest>();
+        var logs = new List<Common.Log>();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
-        // keep 3min records
+        // logs keep 3min records
         var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
-        var over = dbContext.Counters.Where(c => c.RecordTime <= limit).ToArray();
-        if (over.Length > 0) dbContext.Counters.RemoveRange(over);
+        dbContext.Logs.RemoveRange(dbContext.Logs.Where(c => c.RecordTime <= limit));
         await foreach (var message in stream.ReadAllAsync())
         {
           counters.AddRange(message.Counter);
         }
+        var latest = new Common.Counter();
         foreach (var c in counters)
         {
-          var counter = new Common.Counter
+          latest.NodeId = c.NodeId;
+          latest.Count = c.Count;
+          latest.RecordTime = c.RecordTime.ToDateTime();
+
+          // save log
+          logs.Add(new Common.Log
           {
-            NodeId = c.NodeId,
-            Count = c.Count,
-            RecordTime = c.RecordTime.ToDateTime()
-          };
-          await eventSender.SendAsync("ReturnedCounter", counter);
-          await dbContext.Counters.AddAsync(counter);
-          _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
+            NodeId = latest.NodeId,
+            Count = latest.Count,
+            RecordTime = latest.RecordTime
+          });
+
+          await eventSender.SendAsync("ReturnedCounter", latest);
+          _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
         }
+
+        // record counter
+        if (dbContext.Counters.Any(c => c.NodeId == latest.NodeId))
+        {
+          var target = dbContext.Counters.FirstOrDefault(c => c.NodeId == latest.NodeId);
+          if (target != null)
+          {
+            target.Count = latest.Count;
+            target.RecordTime = latest.RecordTime;
+          }
+        }
+        else
+        {
+          if (!string.IsNullOrEmpty(latest.NodeId)) await dbContext.Counters.AddAsync(latest);
+        }
+
+        // record log
+        await dbContext.Logs.AddRangeAsync(logs);
         await dbContext.SaveChangesAsync();
         return new Common.Proto.CounterReply
         {

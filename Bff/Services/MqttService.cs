@@ -42,7 +42,6 @@ namespace Bff.Services
     {
       _appLifetime.ApplicationStarted.Register(OnStarted);
       _appLifetime.ApplicationStopping.Register(OnStopping);
-      _appLifetime.ApplicationStopped.Register(OnStopped);
       return Task.CompletedTask;
     }
 
@@ -89,25 +88,48 @@ namespace Bff.Services
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
         var appMessage = handler.ApplicationMessage;
-        // keep 3min records
+        // logs keep 3min records
         var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
-        var over = dbContext.Counters.Where(c => c.RecordTime <= limit).ToArray();
-        if (over.Length > 0) dbContext.Counters.RemoveRange(over);
-
+        dbContext.Logs.RemoveRange(dbContext.Logs.Where(c => c.RecordTime <= limit));
         var payload = Encoding.UTF8.GetString(appMessage.Payload, 0, appMessage.Payload.Length);
         var counters = JsonSerializer.Deserialize<IEnumerable<Common.Proto.CounterRequest>>(payload);
+        var latest = new Common.Counter();
+        var logs = new List<Common.Log>();
         foreach (var c in counters)
         {
-          var counter = new Common.Counter
+          latest.NodeId = c.NodeId;
+          latest.Count = c.Count;
+          latest.RecordTime = c.RecordTime.ToDateTime();
+
+          // save log
+          logs.Add(new Log
           {
-            NodeId = c.NodeId,
-            Count = c.Count,
-            RecordTime = c.RecordTime.ToDateTime()
-          };
-          await eventSender.SendAsync("ReturnedCounter", counter);
-          await dbContext.Counters.AddAsync(counter);
-          _logger.LogInformation("[MQTT] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
+            NodeId = latest.NodeId,
+            Count = latest.Count,
+            RecordTime = latest.RecordTime
+          });
+
+          await eventSender.SendAsync("ReturnedCounter", latest);
+          _logger.LogInformation("[MQTT] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
         }
+
+        // record counter
+        if (dbContext.Counters.Any(c => c.NodeId == latest.NodeId))
+        {
+          var target = dbContext.Counters.FirstOrDefault(c => c.NodeId == latest.NodeId);
+          if (target != null)
+          {
+            target.Count = latest.Count;
+            target.RecordTime = latest.RecordTime;
+          }
+        }
+        else
+        {
+          if (!string.IsNullOrEmpty(latest.NodeId)) await dbContext.Counters.AddAsync(latest);
+        }
+
+        // record log
+        await dbContext.Logs.AddRangeAsync(logs);
         await dbContext.SaveChangesAsync();
       }
       catch (Exception e)
@@ -123,11 +145,6 @@ namespace Bff.Services
     private async void OnStopping()
     {
       await _client?.StopAsync();
-    }
-
-    private void OnStopped()
-    {
-      this.Dispose();
     }
 
     public void Dispose()

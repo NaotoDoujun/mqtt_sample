@@ -37,9 +37,30 @@ namespace Bff.Models
         };
         // keep 3min records
         var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
-        var over = dbContext.Counters.Where(c => c.RecordTime <= limit).ToArray();
-        if (over.Length > 0) dbContext.Counters.RemoveRange(over);
-        await dbContext.Counters.AddAsync(counter);
+        dbContext.Logs.RemoveRange(dbContext.Logs.Where(c => c.RecordTime <= limit));
+
+        // record counter
+        if (dbContext.Counters.Any(c => c.NodeId == counter.NodeId))
+        {
+          var target = dbContext.Counters.FirstOrDefault(c => c.NodeId == counter.NodeId);
+          if (target != null)
+          {
+            target.Count = counter.Count;
+            target.RecordTime = counter.RecordTime;
+          }
+        }
+        else
+        {
+          if (!string.IsNullOrEmpty(counter.NodeId)) await dbContext.Counters.AddAsync(counter);
+        }
+
+        // record log
+        await dbContext.Logs.AddAsync(new Log
+        {
+          NodeId = counter.NodeId,
+          Count = counter.Count,
+          RecordTime = counter.RecordTime
+        });
         await dbContext.SaveChangesAsync();
         await eventSender.SendAsync("ReturnedCounter", counter);
         _logger.LogInformation("[AMQP] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));

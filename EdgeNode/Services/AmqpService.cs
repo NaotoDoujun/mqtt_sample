@@ -92,7 +92,7 @@ namespace EdgeNode.Services
           {
             await _bus.Publish(record);
           }
-          if (dbContext.Counters.Count() > 0)
+          if (dbContext.Counters.Any())
           {
             _logger.LogInformation("[AMQP] succeeded. going to delete localDb records");
             dbContext.Counters.RemoveRange(dbContext.Counters.AsEnumerable());

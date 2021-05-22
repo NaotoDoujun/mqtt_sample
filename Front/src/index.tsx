@@ -40,6 +40,9 @@ const client = new ApolloClient({
       Counter: {
         keyFields: ["nodeId"],
       },
+      Log: {
+        keyFields: ["id"],
+      }
     }
   })
 });

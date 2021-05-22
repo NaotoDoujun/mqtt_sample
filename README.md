@@ -11,12 +11,12 @@ Make locally-trusted development certificates and put them into key folder.
 https://github.com/FiloSottile/mkcert
 ```
 $ mkcert -install
-$ mkcert broker.local bff.local edgenode.local localhost 127.0.0.1 ::1
+$ mkcert broker.local bff.local edgenode.local camnode.local localhost 127.0.0.1 ::1
 ```
 Created files should rename like this.
 ```
-$ mv broker.local+5-key.pem server.key
-$ mv broker.local+5.pem server.crt
+$ mv broker.local+6-key.pem server.key
+$ mv broker.local+6.pem server.crt
 ```
 Wheres my rootCA?
 ```
@@ -38,6 +38,11 @@ docker build -t front -f Front/Dockerfile .
 ### EdgeNode
 ```
 docker build -t edgenode -f EdgeNode/Dockerfile .
+```
+
+### CamNode
+```
+docker build -t camnode -f CamNode/Dockerfile .
 ```
 
 ### Broker

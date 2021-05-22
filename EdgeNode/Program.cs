@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using NLog.Web;
 using CommandLine;
+using DeviceId;
 using EdgeNode.Services;
 using EdgeNode.Models;
 using Common;
@@ -71,14 +72,18 @@ namespace EdgeNode
             })
             .ConfigureContainer<ContainerBuilder>(builder =>
             {
-              //generate nodeId
-              var nodeId = Guid.NewGuid().ToString();
-              // set args as service properties
+              //build deviceId
+              string deviceId = new DeviceIdBuilder()
+                                    .AddMachineName()
+                                    .AddMacAddress()
+                                    .AddProcessorId()
+                                    .AddMotherboardSerialNumber()
+                                    .ToString();
               Parser.Default.ParseArguments<ArgOptions>(args).WithParsed<ArgOptions>(o =>
               {
                 builder.RegisterModule(new ServiceModule()
                 {
-                  NodeId = nodeId,
+                  NodeId = deviceId,
                   ServiceType = o.ServiceType,
                   TimeSpan = o.TimeSpan
                 });
