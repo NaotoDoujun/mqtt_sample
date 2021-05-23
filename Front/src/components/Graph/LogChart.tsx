@@ -7,9 +7,15 @@ import { Log, Chart, LogsForChart, LOGCHART_QUERY } from '../Common/types'
 
 const LogChart: React.FC<any> = (props: any) => {
   const theme = useTheme();
-  const { loading, error, data } = useQuery<LogsForChart>(LOGCHART_QUERY, {
-    pollInterval: 5000,
-  })
+  const { loading, error, data, startPolling, stopPolling } = useQuery<LogsForChart>(LOGCHART_QUERY)
+
+  React.useEffect(() => {
+    startPolling(5000)
+    return () => {
+      stopPolling()
+    }
+  }, [startPolling, stopPolling])
+
   if (error) <p>Got Error...</p>
 
   const convChartData = (logs: Log[]): Chart[] => {

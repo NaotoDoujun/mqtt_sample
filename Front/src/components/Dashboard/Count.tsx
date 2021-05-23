@@ -30,7 +30,14 @@ const Count: React.FC<any> = (props: any) => {
     variables: { skip: page * rowsPerPage, take: rowsPerPage }
   })
 
-  React.useEffect(() => subscribeToMore({ document: COUNT_SUBSCRIPTION }), [subscribeToMore])
+  React.useEffect(() => {
+    const unsubscribe = subscribeToMore({ document: COUNT_SUBSCRIPTION })
+    return () => {
+      unsubscribe()
+      setPage(0)
+      setRowsPerPage(0)
+    }
+  }, [setPage, setRowsPerPage, subscribeToMore])
 
   if (error) return <p>Got Error...</p>
 
