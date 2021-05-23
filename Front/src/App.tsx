@@ -191,6 +191,7 @@ function App() {
               <Route exact path='/list' component={ListComponent} />
               <Route exact path='/graph' component={GraphComponent} />
               <Route exact path='/settings' component={SettingsComponent} />
+              <Route component={DashboardComponent} />
             </Switch>
           </main>
         </div>

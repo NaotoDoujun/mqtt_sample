@@ -15,6 +15,8 @@ services:
     image: bff
     container_name: ManagerBff
     hostname: bff.local
+    depends_on: 
+      - broker
     ports: 
       - 5001:5001
       - 5002:5002
@@ -28,4 +30,10 @@ services:
   edgenode:
     image: edgenode
     container_name: EdgeNode
-    hostname: edgenode.local
+    depends_on: 
+      - broker
+  camnode:
+    image: camnode
+    container_name: CamNode
+    depends_on: 
+      - broker

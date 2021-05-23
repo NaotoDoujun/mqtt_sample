@@ -5,6 +5,8 @@ import {
   CardHeader
 } from '@material-ui/core';
 import { Theme, makeStyles, createStyles } from '@material-ui/core/styles'
+import { Movie } from './Movie'
+
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
@@ -21,7 +23,10 @@ const Detail: React.FC<any> = (props: any) => {
   return (
     <Card className={classes.root}>
       <CardHeader title="Detail" className={classes.cardheader} />
-      <CardContent>nodeId: {params.id}</CardContent>
+      <CardContent>
+        <div>nodeId: {params.id}</div>
+        <Movie />
+      </CardContent>
     </Card>
   )
 }

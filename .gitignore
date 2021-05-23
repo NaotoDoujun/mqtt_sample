@@ -9,5 +9,3 @@ server.crt
 docker_storage
 bff.db*
 node.db*
-
-CamNode

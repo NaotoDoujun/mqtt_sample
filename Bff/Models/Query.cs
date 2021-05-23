@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Data;
 using HotChocolate.Types;

@@ -40,6 +40,11 @@ docker build -t front -f Front/Dockerfile .
 docker build -t edgenode -f EdgeNode/Dockerfile .
 ```
 
+### CamNode (using qemu based Raspberry Pi OS)
+```
+docker build -t camnode -f CamNode/Dockerfile .
+```
+
 ### Broker
 ```
 docker build -t broker -f Broker/Dockerfile .

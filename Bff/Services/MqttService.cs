@@ -25,6 +25,7 @@ namespace Bff.Services
     private readonly IConfiguration _configuration;
     private readonly IManagedMqttClient _client;
     private readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim MovieSemaphore = new SemaphoreSlim(1, 1);
 
     public MqttService(IServiceScopeFactory scopeFactory,
       ILogger<MqttService> logger,
@@ -66,15 +67,30 @@ namespace Bff.Services
       _client.UseConnectedHandler(async handler =>
       {
         _logger.LogInformation("Connected successfully with MQTT Brokers.");
-        await _client.SubscribeAsync(new MqttTopicFilterBuilder()
-          .WithTopic("/topic")
+        var topicFilters = new List<MqttTopicFilter>();
+        topicFilters.Add(new MqttTopicFilterBuilder()
+          .WithTopic("/count")
           .WithAtLeastOnceQoS()
           .Build());
+        topicFilters.Add(new MqttTopicFilterBuilder()
+          .WithTopic("/putmovie")
+          .WithAtMostOnceQoS()
+          .Build());
+        await _client.SubscribeAsync(topicFilters);
       });
 
       _client.UseApplicationMessageReceivedHandler(async handler =>
       {
-        await SubscribeAsync(handler);
+        switch (handler.ApplicationMessage.Topic)
+        {
+          case "/putmovie":
+            await SubscribeMovieAsync(handler);
+            break;
+          default:
+            await SubscribeAsync(handler);
+            break;
+        }
+
       });
       await _client.StartAsync(options);
     }
@@ -110,7 +126,7 @@ namespace Bff.Services
           });
 
           await eventSender.SendAsync("ReturnedCounter", latest);
-          _logger.LogInformation("[MQTT] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
+          _logger.LogTrace("[MQTT] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
         }
 
         // record counter
@@ -139,6 +155,23 @@ namespace Bff.Services
       finally
       {
         Semaphore.Release();
+      }
+    }
+
+    private async Task SubscribeMovieAsync(MqttApplicationMessageReceivedEventArgs handler)
+    {
+      await MovieSemaphore.WaitAsync().ConfigureAwait(false);
+      try
+      {
+        using var scope = _scopeFactory.CreateScope();
+        var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
+        var image = handler.ApplicationMessage.Payload;
+        await eventSender.SendAsync("MovieFrameBase64", Convert.ToBase64String(image));
+        _logger.LogTrace("[MQTT] Frame Image: {Image}", image);
+      }
+      finally
+      {
+        MovieSemaphore.Release();
       }
     }
 

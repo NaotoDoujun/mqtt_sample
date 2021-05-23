@@ -10,6 +10,7 @@ COPY Front /usr/src/app
 RUN npm run build
 
 FROM nginx:latest AS base
+COPY Front/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /usr/src/app/build /usr/share/nginx/html
 WORKDIR /usr/share/nginx/html
 CMD ["nginx", "-g", "daemon off;"]

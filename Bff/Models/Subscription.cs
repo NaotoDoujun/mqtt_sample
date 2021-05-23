@@ -16,5 +16,12 @@ namespace Bff.Models
     {
       return await eventReceiver.SubscribeAsync<string, Counter>("ReturnedCounter", cancellationToken);
     }
+
+    [SubscribeAndResolve]
+    public async ValueTask<ISourceStream<string>> OnStream([Service] ITopicEventReceiver eventReceiver,
+        CancellationToken cancellationToken)
+    {
+      return await eventReceiver.SubscribeAsync<string, string>("MovieFrameBase64", cancellationToken);
+    }
   }
 }

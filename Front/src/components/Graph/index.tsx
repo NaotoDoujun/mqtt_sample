@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme: Theme) =>
       flexDirection: 'column',
     },
     fixedHeight: {
-      height: 360,
+      height: '70vh',
     },
   }))
 const Graph: React.FC<any> = (props: any) => {

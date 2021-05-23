@@ -82,7 +82,7 @@ export const COUNT_SUBSCRIPTION = gql`
 
 export const LOG_QUERY = gql`
   query Logs($skip: Int! $take: Int!) {
-    logs(skip: $skip take: $take) {
+    logs(skip: $skip take: $take order:{id:ASC}) {
       pageInfo{
         hasNextPage
         hasPreviousPage
@@ -106,5 +106,11 @@ export const LOGCHART_QUERY = gql`
         count
         recordTime
     }
+  }
+`;
+
+export const MOVIE_SUBSCRIPTION = gql`
+  subscription OnStream {
+    onStream
   }
 `;

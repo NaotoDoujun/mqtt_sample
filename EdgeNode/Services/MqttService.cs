@@ -96,7 +96,7 @@ namespace EdgeNode.Services
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         if (executionCount >= 100) executionCount = 0;
         var count = Interlocked.Increment(ref executionCount);
-        _logger.LogInformation("[MQTT] Counter is working. Count: {Count}", count);
+        _logger.LogTrace("[MQTT] Counter is working. Count: {Count}", count);
         var query = dbContext.Counters.AsEnumerable();
         var sendCounters = new List<Common.Proto.CounterRequest>();
         foreach (var record in query)
@@ -118,14 +118,14 @@ namespace EdgeNode.Services
         if (_client.IsConnected)
         {
           var message = new MqttApplicationMessageBuilder()
-          .WithTopic("/topic")
+          .WithTopic("/count")
           .WithPayload(JsonSerializer.Serialize(sendCounters.AsEnumerable()))
           .WithAtLeastOnceQoS()
           .Build();
           await _client.PublishAsync(message, CancellationToken.None);
           if (dbContext.Counters.Any())
           {
-            _logger.LogInformation("[MQTT] succeeded. going to delete localDb records");
+            _logger.LogTrace("[MQTT] succeeded. going to delete localDb records");
             dbContext.Counters.RemoveRange(query);
             await dbContext.SaveChangesAsync();
           }
