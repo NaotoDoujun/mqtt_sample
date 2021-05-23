@@ -10,7 +10,7 @@ import {
   HttpLink,
   split
 } from '@apollo/client';
-import { getMainDefinition } from '@apollo/client/utilities';
+import { getMainDefinition, offsetLimitPagination } from '@apollo/client/utilities';
 import { WebSocketLink } from "@apollo/client/link/ws";
 
 const httpLink = new HttpLink({ uri: 'https://localhost:5001/graphql/' });
@@ -37,6 +37,11 @@ const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache({
     typePolicies: {
+      Query: {
+        fields: {
+          items: offsetLimitPagination()
+        },
+      },
       Counter: {
         keyFields: ["nodeId"],
       },
