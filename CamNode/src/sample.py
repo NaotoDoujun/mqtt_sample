@@ -30,6 +30,7 @@ def scheduler(arg1, arg2):
     img = np.zeros((480, 640, 3), np.uint8)
     img[:, :, 0] = 255
     name = str(uuid.uuid4()) + ".png"
+    # save tmp for draw timestamp
     cv2.imwrite(name, img)
     im_buf = cv2.imread(name)
     utcdate = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
@@ -50,8 +51,8 @@ def main():
     client.loop_start()
 
     signal.signal(signal.SIGALRM, scheduler)
-    # 4fps
-    signal.setitimer(signal.ITIMER_REAL, 0.25, 0.25)
+    # 5fps
+    signal.setitimer(signal.ITIMER_REAL, 0.2, 0.2)
 
     try:
         while True:

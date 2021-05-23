@@ -22,4 +22,5 @@ COPY CamNode/supervisord.conf /etc/supervisor/conf.d/
 COPY CamNode/src ./src
 RUN chmod +x ./src/sample.py
 
+#ENTRYPOINT ["/usr/bin/python3", "/app/src/sample.py"]
 ENTRYPOINT ["/usr/bin/supervisord"]
