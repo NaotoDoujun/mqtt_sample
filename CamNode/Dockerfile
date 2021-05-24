@@ -13,7 +13,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
   libqt4-test libatk1.0-0 libavformat58 libgdk-pixbuf2.0-0 libilmbase23 \
   libjasper1 libopenexr23 libpangocairo-1.0-0 libwebp6 libatlas-base-dev && apt-get clean all
 RUN pip3 install --upgrade pip && pip3 install --upgrade setuptools && \
-  pip3 install paho-mqtt && pip3 install opencv-python==4.1.0.25
+  pip3 install paho-mqtt && pip3 install opencv-python==4.4.0.42
 
 # PAM
 RUN sed -i -e '/pam_loginuid.so/s/^/#/' /etc/pam.d/cron

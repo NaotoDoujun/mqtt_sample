@@ -39,7 +39,12 @@ const client = new ApolloClient({
     typePolicies: {
       Query: {
         fields: {
-          items: offsetLimitPagination()
+          items: offsetLimitPagination(),
+          logsForChart: {
+            merge: (existing, incoming) => {
+              return incoming
+            }
+          }
         },
       },
       Counter: {

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useApolloClient } from '@apollo/client'
 import clsx from 'clsx';
 import {
   Card,
@@ -29,6 +30,18 @@ const useStyles = makeStyles((theme: Theme) =>
   }))
 const Graph: React.FC<any> = (props: any) => {
   const classes = useStyles()
+  const client = useApolloClient()
+
+  React.useEffect(() => {
+    return () => {
+      client.cache.evict({
+        id: "Query",
+        fieldName: "items"
+      })
+      client.cache.gc()
+    }
+  }, [client])
+
   const fixedHeight = clsx(classes.cardcontent, classes.fixedHeight);
   return (
     <Card className={classes.root}>
