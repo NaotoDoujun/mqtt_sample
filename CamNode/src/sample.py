@@ -28,15 +28,17 @@ def scheduler(arg1, arg2):
     img[:, :, 0] = 255
     name = str(uuid.uuid4()) + ".png"
     # save tmp for draw timestamp
-    cv2.imwrite(name, img)
-    im_buf = cv2.imread(name)
-    utcdate = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]
-    cv2.putText(im_buf, utcdate, (10, 30), cv2.FONT_HERSHEY_PLAIN,
-                1.5, (255, 255, 255), 1, cv2.LINE_AA)
-    is_success, im_buf_arr = cv2.imencode(".png", im_buf)
-    if is_success:
-        client.publish("/putmovie", im_buf_arr.tobytes(), qos=0)
-        os.remove(name)
+    wt_success = cv2.imwrite(name, img)
+    if wt_success:
+        im_buf = cv2.imread(name)
+        if im_buf is not None:
+            utcdate = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]
+            cv2.putText(im_buf, utcdate, (10, 30), cv2.FONT_HERSHEY_PLAIN,
+                        1.5, (255, 255, 255), 1, cv2.LINE_AA)
+            enc_success, im_buf_arr = cv2.imencode(".png", im_buf)
+            if enc_success:
+                client.publish("/putmovie", im_buf_arr.tobytes(), qos=0)
+                os.remove(name)
 
 
 def main():
