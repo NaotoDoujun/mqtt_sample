@@ -27,6 +27,14 @@ const LogList: React.FC<any> = (props: any) => {
   const { loading, error, data } = useQuery<Logs, OffsetPaginationVars>(LOG_QUERY, {
     variables: { skip: page * rowsPerPage, take: rowsPerPage }
   })
+
+  React.useEffect(() => {
+    return () => {
+      setPage(0)
+      setRowsPerPage(0)
+    }
+  }, [setPage, setRowsPerPage])
+
   if (error) return <p>Got Error...</p>
 
   const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {

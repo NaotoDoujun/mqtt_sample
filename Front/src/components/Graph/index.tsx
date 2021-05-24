@@ -1,11 +1,7 @@
 import React from 'react'
 import { useApolloClient } from '@apollo/client'
 import clsx from 'clsx';
-import {
-  Card,
-  CardHeader,
-  CardContent
-} from '@material-ui/core';
+import { Card, CardHeader, CardContent } from '@material-ui/core';
 import { Theme, makeStyles, createStyles } from '@material-ui/core/styles'
 import { LogChart } from './LogChart';
 

@@ -1,9 +1,5 @@
 import React from 'react'
-import {
-  Card,
-  CardContent,
-  CardHeader
-} from '@material-ui/core';
+import { Card, CardContent, CardHeader } from '@material-ui/core';
 import { Theme, makeStyles, createStyles } from '@material-ui/core/styles'
 import { Movie } from './Movie'
 
