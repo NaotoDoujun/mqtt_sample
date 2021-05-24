@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
@@ -97,48 +96,36 @@ namespace EdgeNode.Services
         if (executionCount >= 100) executionCount = 0;
         var count = Interlocked.Increment(ref executionCount);
         _logger.LogTrace("[MQTT] Counter is working. Count: {Count}", count);
-        var query = dbContext.Counters.AsEnumerable();
-        var sendCounters = new List<Common.Proto.CounterRequest>();
-        foreach (var record in query)
-        {
-          sendCounters.Add(new Common.Proto.CounterRequest
-          {
-            NodeId = record.NodeId,
-            Count = record.Count,
-            RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(record.RecordTime.ToUniversalTime())
-          });
-        }
-        sendCounters.Add(new Common.Proto.CounterRequest
+        var counters = dbContext.Counters.ToList();
+        counters.Add(new Common.Counter
         {
           NodeId = _serviceSettings.NodeId,
           Count = count,
-          RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.Now.ToUniversalTime())
+          RecordTime = DateTime.UtcNow
         });
-
         if (_client.IsConnected)
         {
           var message = new MqttApplicationMessageBuilder()
           .WithTopic("/count")
-          .WithPayload(JsonSerializer.Serialize(sendCounters.AsEnumerable()))
+          .WithPayload(JsonSerializer.Serialize(counters.AsEnumerable()))
           .WithAtLeastOnceQoS()
           .Build();
           await _client.PublishAsync(message, CancellationToken.None);
           if (dbContext.Counters.Any())
           {
             _logger.LogTrace("[MQTT] succeeded. going to delete localDb records");
-            dbContext.Counters.RemoveRange(query);
+            dbContext.Counters.RemoveRange(dbContext.Counters);
             await dbContext.SaveChangesAsync();
           }
         }
         else
         {
-          var counter = new Common.Counter
+          await dbContext.Counters.AddAsync(new Common.Counter
           {
             NodeId = _serviceSettings.NodeId,
             Count = count,
-            RecordTime = DateTime.Now
-          };
-          await dbContext.Counters.AddAsync(counter);
+            RecordTime = DateTime.UtcNow
+          });
           await dbContext.SaveChangesAsync();
           _logger.LogWarning("[MQTT] failed. Recorded to localDb: {Count}", count);
         }

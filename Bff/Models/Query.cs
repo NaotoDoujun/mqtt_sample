@@ -26,6 +26,7 @@ namespace Bff.Models
                   join s in subquery
                     on c.NodeId equals s.NodeId
                   where c.RecordTime == s.RecordTime
+                  orderby c.NodeId ascending
                   select c;
       return query;
     }

@@ -1,9 +1,5 @@
 import React from 'react'
-import {
-  Card,
-  CardHeader,
-  Divider
-} from '@material-ui/core';
+import { Card, CardHeader } from '@material-ui/core';
 import { Theme, makeStyles, createStyles } from '@material-ui/core/styles'
 import { Count } from './Count'
 const useStyles = makeStyles((theme: Theme) =>
@@ -21,7 +17,6 @@ const Dashboard: React.FC<any> = (props: any) => {
   return (
     <Card className={classes.root}>
       <CardHeader title="Dashboard" className={classes.cardheader} />
-      <Divider />
       <Count />
     </Card>
   )

@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSubscription } from '@apollo/client'
 import { CircularProgress } from '@material-ui/core'
-import { MOVIE_SUBSCRIPTION } from '../Common/types'
+import { MOVIE_SUBSCRIPTION } from '../Types'
 
 const Movie: React.FC<any> = (props: any) => {
   const { data, loading } = useSubscription(MOVIE_SUBSCRIPTION)

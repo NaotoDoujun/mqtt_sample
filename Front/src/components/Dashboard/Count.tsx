@@ -21,7 +21,7 @@ import {
   TablePaginationActions,
   convUTC2JST
 } from '../Common'
-import { Counter, Latests, OffsetPaginationVars, LATEST_QUERY, COUNT_SUBSCRIPTION } from '../Common/types'
+import { Counter, Latests, OffsetPaginationVars, LATEST_QUERY, COUNT_SUBSCRIPTION } from '../Types'
 
 const Count: React.FC<any> = (props: any) => {
   const [page, setPage] = React.useState(0);

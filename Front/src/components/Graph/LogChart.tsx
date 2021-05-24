@@ -3,7 +3,7 @@ import { useQuery } from '@apollo/client'
 import { CircularProgress } from '@material-ui/core'
 import { useTheme } from '@material-ui/core/styles'
 import { LineChart, Line, XAxis, YAxis, Label, ResponsiveContainer } from 'recharts'
-import { Log, Chart, LogsForChart, LOGCHART_QUERY } from '../Common/types'
+import { Log, Chart, LogsForChart, LOGCHART_QUERY } from '../Types'
 
 const LogChart: React.FC<any> = (props: any) => {
   const theme = useTheme();

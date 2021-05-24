@@ -19,7 +19,7 @@ import {
   TablePaginationActions,
   convUTC2JST
 } from '../Common'
-import { Log, Logs, OffsetPaginationVars, LOG_QUERY } from '../Common/types'
+import { Log, Logs, OffsetPaginationVars, LOG_QUERY } from '../Types'
 
 const LogList: React.FC<any> = (props: any) => {
   const [page, setPage] = React.useState(0);
@@ -45,7 +45,7 @@ const LogList: React.FC<any> = (props: any) => {
       {loading ? <CircularProgress /> :
         <TableContainer component={CardContent}>
           <Typography variant="h6">Counter Logs</Typography>
-          <Table>
+          <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell>Id</TableCell>

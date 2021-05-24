@@ -108,14 +108,14 @@ namespace Bff.Services
         var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
         dbContext.Logs.RemoveRange(dbContext.Logs.Where(c => c.RecordTime <= limit));
         var payload = Encoding.UTF8.GetString(appMessage.Payload, 0, appMessage.Payload.Length);
-        var counters = JsonSerializer.Deserialize<IEnumerable<Common.Proto.CounterRequest>>(payload);
+        var counters = JsonSerializer.Deserialize<IEnumerable<Common.Counter>>(payload);
         var latest = new Common.Counter();
         var logs = new List<Common.Log>();
         foreach (var c in counters)
         {
           latest.NodeId = c.NodeId;
           latest.Count = c.Count;
-          latest.RecordTime = c.RecordTime.ToDateTime();
+          latest.RecordTime = c.RecordTime;
 
           // save log
           logs.Add(new Log
