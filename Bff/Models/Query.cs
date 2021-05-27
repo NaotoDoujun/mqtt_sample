@@ -20,12 +20,12 @@ namespace Bff.Models
                      select new
                      {
                        NodeId = g.Key,
-                       RecordTime = g.Max(a => a.RecordTime)
+                       LocalRecordTime = g.Max(a => a.LocalRecordTime)
                      };
       var query = from c in context.Counters
                   join s in subquery
                     on c.NodeId equals s.NodeId
-                  where c.RecordTime == s.RecordTime
+                  where c.LocalRecordTime == s.LocalRecordTime
                   orderby c.NodeId ascending
                   select c;
       return query;

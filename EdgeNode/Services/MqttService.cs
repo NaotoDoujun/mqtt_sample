@@ -95,13 +95,13 @@ namespace EdgeNode.Services
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         if (executionCount >= 100) executionCount = 0;
         var count = Interlocked.Increment(ref executionCount);
-        _logger.LogTrace("[MQTT] Counter is working. Count: {Count}", count);
+        _logger.LogInformation("[MQTT] Counter is working. Count: {Count}", count);
         var counters = dbContext.Counters.ToList();
         counters.Add(new Common.Counter
         {
           NodeId = _serviceSettings.NodeId,
           Count = count,
-          RecordTime = DateTime.UtcNow
+          LocalRecordTime = DateTime.Now
         });
         if (_client.IsConnected)
         {
@@ -124,7 +124,7 @@ namespace EdgeNode.Services
           {
             NodeId = _serviceSettings.NodeId,
             Count = count,
-            RecordTime = DateTime.UtcNow
+            LocalRecordTime = DateTime.Now
           });
           await dbContext.SaveChangesAsync();
           _logger.LogWarning("[MQTT] failed. Recorded to localDb: {Count}", count);

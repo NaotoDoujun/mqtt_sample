@@ -10,7 +10,8 @@ export const LATEST_QUERY = gql`
       items{
         nodeId
         count
-        recordTime
+        localRecordTime
+        utcRecordTime
       }
       totalCount
     }
@@ -22,14 +23,15 @@ export const COUNT_SUBSCRIPTION = gql`
     onRecorded {
       nodeId
       count
-      recordTime
+      localRecordTime
+      utcRecordTime
     }
   }
 `;
 
 export const LOG_QUERY = gql`
   query Logs($skip: Int! $take: Int!) {
-    logs(skip: $skip take: $take order:{id:ASC}) {
+    logs(skip: $skip take: $take order:[{localRecordTime:ASC},{id:ASC}]) {
       pageInfo{
         hasNextPage
         hasPreviousPage
@@ -38,7 +40,8 @@ export const LOG_QUERY = gql`
         id
         nodeId
         count
-        recordTime
+        localRecordTime
+        utcRecordTime
       }
       totalCount
     }
@@ -51,7 +54,8 @@ export const LOGCHART_QUERY = gql`
         id
         nodeId
         count
-        recordTime
+        localRecordTime
+        utcRecordTime
     }
   }
 `;

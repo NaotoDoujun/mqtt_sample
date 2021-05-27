@@ -16,6 +16,10 @@ RUN dotnet publish -c Release -o out
 RUN cp bff.db out/bff.db
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
+
+# Timezone setting
+ENV TZ=Asia/Tokyo
+
 WORKDIR /app
 COPY --from=build /app/Bff/out ./
 COPY --from=build /app/server.pfx /app/.

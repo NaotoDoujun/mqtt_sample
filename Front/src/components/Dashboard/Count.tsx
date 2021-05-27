@@ -19,7 +19,7 @@ import {
   StyledTableCell,
   StyledTableRow,
   TablePaginationActions,
-  convUTC2JST
+  convUTC2Local
 } from '../Common'
 import { Counter, Latests, OffsetPaginationVars, LATEST_QUERY, COUNT_SUBSCRIPTION } from '../Types'
 
@@ -31,7 +31,18 @@ const Count: React.FC<any> = (props: any) => {
   })
 
   React.useEffect(() => {
-    const unsubscribe = subscribeToMore({ document: COUNT_SUBSCRIPTION })
+    const unsubscribe = subscribeToMore({
+      document: COUNT_SUBSCRIPTION,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev;
+        const newItem = subscriptionData.data.onRecorded;
+        return Object.assign({}, prev, {
+          latests: {
+            items: [newItem, ...prev.latests.items]
+          }
+        });
+      }
+    })
     return () => {
       unsubscribe()
       setPage(0)
@@ -71,7 +82,7 @@ const Count: React.FC<any> = (props: any) => {
                 <StyledTableRow key={counter.nodeId}>
                   <StyledTableCell component="th" scope="row">{counter.nodeId}</StyledTableCell>
                   <StyledTableCell>{counter.count}</StyledTableCell>
-                  <StyledTableCell>{convUTC2JST(counter.recordTime)}</StyledTableCell>
+                  <StyledTableCell>{convUTC2Local(counter.utcRecordTime)}</StyledTableCell>
                   <StyledTableCell align="right">
                     <Button variant="contained" component={Link} to={`detail/${counter.nodeId}`}>Detail</Button>
                   </StyledTableCell>

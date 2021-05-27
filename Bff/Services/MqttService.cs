@@ -103,54 +103,48 @@ namespace Bff.Services
         using var scope = _scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
+
         var appMessage = handler.ApplicationMessage;
-        // logs keep 3min records
-        var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
-        dbContext.Logs.RemoveRange(dbContext.Logs.Where(c => c.RecordTime <= limit));
         var payload = Encoding.UTF8.GetString(appMessage.Payload, 0, appMessage.Payload.Length);
         var counters = JsonSerializer.Deserialize<IEnumerable<Common.Counter>>(payload);
-        var latest = new Common.Counter();
-        var logs = new List<Common.Log>();
-        foreach (var c in counters)
+        if (counters.Any())
         {
-          latest.NodeId = c.NodeId;
-          latest.Count = c.Count;
-          latest.RecordTime = c.RecordTime;
-
-          // save log
-          logs.Add(new Log
+          var latest = counters.Last();
+          var logs = new List<Common.Log>();
+          foreach (var c in counters)
           {
-            NodeId = latest.NodeId,
-            Count = latest.Count,
-            RecordTime = latest.RecordTime
-          });
+            // save log
+            logs.Add(new Common.Log
+            {
+              NodeId = c.NodeId,
+              Count = c.Count,
+              LocalRecordTime = c.LocalRecordTime
+            });
+          }
+
+          // record counter
+          var _counter = dbContext.Counters.FirstOrDefault(c => c.NodeId == latest.NodeId);
+          if (_counter != null)
+          {
+            _counter.Count = latest.Count;
+            _counter.LocalRecordTime = latest.LocalRecordTime;
+          }
+          else
+          {
+            await dbContext.Counters.AddAsync(latest);
+          }
+
+          // record log
+          await dbContext.Logs.AddRangeAsync(logs);
+          await dbContext.SaveChangesAsync();
 
           await eventSender.SendAsync("ReturnedCounter", latest);
-          _logger.LogTrace("[MQTT] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
+          _logger.LogInformation("[MQTT] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.LocalRecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
         }
-
-        // record counter
-        if (dbContext.Counters.Any(c => c.NodeId == latest.NodeId))
-        {
-          var target = dbContext.Counters.FirstOrDefault(c => c.NodeId == latest.NodeId);
-          if (target != null)
-          {
-            target.Count = latest.Count;
-            target.RecordTime = latest.RecordTime;
-          }
-        }
-        else
-        {
-          if (!string.IsNullOrEmpty(latest.NodeId)) await dbContext.Counters.AddAsync(latest);
-        }
-
-        // record log
-        await dbContext.Logs.AddRangeAsync(logs);
-        await dbContext.SaveChangesAsync();
       }
       catch (Exception e)
       {
-        _logger.LogError(e.Message);
+        _logger.LogError(e.StackTrace);
       }
       finally
       {

@@ -20,7 +20,7 @@ const LogChart: React.FC<any> = (props: any) => {
 
   const convChartData = (logs: Log[]): Chart[] => {
     return logs.map(l => {
-      const rt = new Date(l.recordTime)
+      const rt = new Date(l.utcRecordTime)
       const recordTime = ('0' + rt.getHours()).slice(-2) + ':' + ('0' + rt.getMinutes()).slice(-2)
       return { time: recordTime, value: l.count }
     })

@@ -8,14 +8,16 @@ export interface PageInfo {
 export interface Counter {
   nodeId: string
   count: number
-  recordTime: string
+  localRecordTime: string
+  utcRecordTime: string
 }
 
 export interface Log {
   id: number
   nodeId: string
   count: number
-  recordTime: string
+  localRecordTime: string
+  utcRecordTime: string
 }
 
 export interface Chart {

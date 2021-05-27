@@ -17,7 +17,7 @@ import {
   StyledTableCell,
   StyledTableRow,
   TablePaginationActions,
-  convUTC2JST
+  convUTC2Local
 } from '../Common'
 import { Log, Logs, OffsetPaginationVars, LOG_QUERY } from '../Types'
 
@@ -34,6 +34,8 @@ const LogList: React.FC<any> = (props: any) => {
       setRowsPerPage(0)
     }
   }, [setPage, setRowsPerPage])
+
+  console.log(error)
 
   if (error) return <p>Got Error...</p>
 
@@ -68,7 +70,7 @@ const LogList: React.FC<any> = (props: any) => {
                   <StyledTableCell>{log.id}</StyledTableCell>
                   <StyledTableCell component="th" scope="row">{log.nodeId}</StyledTableCell>
                   <StyledTableCell>{log.count}</StyledTableCell>
-                  <StyledTableCell>{convUTC2JST(log.recordTime)}</StyledTableCell>
+                  <StyledTableCell>{convUTC2Local(log.utcRecordTime)}</StyledTableCell>
                 </StyledTableRow>
               )}
             </TableBody>

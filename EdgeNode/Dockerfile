@@ -14,6 +14,9 @@ RUN cp node.db out/node.db
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
 WORKDIR /app
 
+# Timezone setting
+ENV TZ=Asia/Tokyo
+
 # certificates
 COPY key/rootCA.pem /usr/share/ca-certificates/mkcert.crt
 RUN cd /etc/ && echo "mkcert.crt" >> ca-certificates.conf && update-ca-certificates
@@ -21,4 +24,4 @@ RUN cd /etc/ && echo "mkcert.crt" >> ca-certificates.conf && update-ca-certifica
 COPY --from=build /app/EdgeNode/out ./
 
 # you can set serviceType(GRPC, AMQP, MQTT) and timeSpan(ms)
-ENTRYPOINT ["dotnet", "EdgeNode.dll", "-s", "MQTT", "-t", "100"]
+ENTRYPOINT ["dotnet", "EdgeNode.dll", "-s", "MQTT", "-t", "1000"]

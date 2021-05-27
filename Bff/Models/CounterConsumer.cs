@@ -29,45 +29,40 @@ namespace Bff.Models
         using var scope = _scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
-        var counter = new Counter
+
+        var counter = new Common.Counter
         {
           NodeId = context.Message.NodeId,
           Count = context.Message.Count,
-          RecordTime = context.Message.RecordTime
+          LocalRecordTime = context.Message.LocalRecordTime
         };
-        // keep 3min records
-        var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
-        dbContext.Logs.RemoveRange(dbContext.Logs.Where(c => c.RecordTime <= limit));
-
         // record counter
-        if (dbContext.Counters.Any(c => c.NodeId == counter.NodeId))
+        var _counter = dbContext.Counters.FirstOrDefault(c => c.NodeId == counter.NodeId);
+        if (_counter != null)
         {
-          var target = dbContext.Counters.FirstOrDefault(c => c.NodeId == counter.NodeId);
-          if (target != null)
-          {
-            target.Count = counter.Count;
-            target.RecordTime = counter.RecordTime;
-          }
+          _counter.Count = counter.Count;
+          _counter.LocalRecordTime = counter.LocalRecordTime;
         }
         else
         {
-          if (!string.IsNullOrEmpty(counter.NodeId)) await dbContext.Counters.AddAsync(counter);
+          await dbContext.Counters.AddAsync(counter);
         }
 
         // record log
-        await dbContext.Logs.AddAsync(new Log
+        await dbContext.Logs.AddAsync(new Common.Log
         {
           NodeId = counter.NodeId,
           Count = counter.Count,
-          RecordTime = counter.RecordTime
+          LocalRecordTime = counter.LocalRecordTime
         });
+
         await dbContext.SaveChangesAsync();
         await eventSender.SendAsync("ReturnedCounter", counter);
-        _logger.LogInformation("[AMQP] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
+        _logger.LogInformation("[AMQP] Count: {Count}, RecordTime: {RecordTime}", counter.Count, counter.LocalRecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
       }
       catch (Exception e)
       {
-        _logger.LogError(e.Message);
+        _logger.LogError(e.StackTrace);
       }
       finally
       {

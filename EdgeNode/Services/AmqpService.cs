@@ -81,7 +81,7 @@ namespace EdgeNode.Services
         {
           NodeId = _serviceSettings.NodeId,
           Count = count,
-          RecordTime = DateTime.UtcNow
+          LocalRecordTime = DateTime.Now
         };
         var health = _busHealth.CheckHealth();
         if (health.Description == "Ready")

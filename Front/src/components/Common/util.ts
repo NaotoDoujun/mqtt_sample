@@ -1,5 +1,5 @@
 
-export const convUTC2JST = (value: string): string => {
+export const convUTC2Local = (value: string): string => {
   const date = new Date(value);
   let str = date.getFullYear()
     + '/' + ('0' + (date.getMonth() + 1)).slice(-2)
@@ -7,7 +7,6 @@ export const convUTC2JST = (value: string): string => {
     + ' ' + ('0' + date.getHours()).slice(-2)
     + ':' + ('0' + date.getMinutes()).slice(-2)
     + ':' + ('0' + date.getSeconds()).slice(-2)
-    + '.' + ('00' + date.getMilliseconds()).slice(-3)
-    + ' (JST)';
+    + '.' + ('00' + date.getMilliseconds()).slice(-3);
   return str;
 }

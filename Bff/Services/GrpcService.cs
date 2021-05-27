@@ -34,9 +34,7 @@ namespace Bff.Services
         var logs = new List<Common.Log>();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
-        // logs keep 3min records
-        var limit = DateTime.Now.AddMilliseconds(-180000).ToUniversalTime();
-        dbContext.Logs.RemoveRange(dbContext.Logs.Where(c => c.RecordTime <= limit));
+
         await foreach (var message in stream.ReadAllAsync())
         {
           counters.AddRange(message.Counter);
@@ -44,40 +42,40 @@ namespace Bff.Services
         var latest = new Common.Counter();
         foreach (var c in counters)
         {
+
           latest.NodeId = c.NodeId;
           latest.Count = c.Count;
-          latest.RecordTime = c.RecordTime.ToDateTime();
+          latest.UtcRecordTime = c.UtcRecordTime.ToDateTime();
+          latest.LocalRecordTime = latest.UtcRecordTime.ToLocalTime();
 
           // save log
           logs.Add(new Common.Log
           {
             NodeId = latest.NodeId,
             Count = latest.Count,
-            RecordTime = latest.RecordTime
+            LocalRecordTime = latest.LocalRecordTime
           });
-
-          await eventSender.SendAsync("ReturnedCounter", latest);
-          _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.RecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
         }
 
         // record counter
-        if (dbContext.Counters.Any(c => c.NodeId == latest.NodeId))
+        var _counter = dbContext.Counters.FirstOrDefault(c => c.NodeId == latest.NodeId);
+        if (_counter != null)
         {
-          var target = dbContext.Counters.FirstOrDefault(c => c.NodeId == latest.NodeId);
-          if (target != null)
-          {
-            target.Count = latest.Count;
-            target.RecordTime = latest.RecordTime;
-          }
+          _counter.Count = latest.Count;
+          _counter.LocalRecordTime = latest.LocalRecordTime;
         }
         else
         {
-          if (!string.IsNullOrEmpty(latest.NodeId)) await dbContext.Counters.AddAsync(latest);
+          await dbContext.Counters.AddAsync(latest);
         }
 
         // record log
         await dbContext.Logs.AddRangeAsync(logs);
         await dbContext.SaveChangesAsync();
+
+        await eventSender.SendAsync("ReturnedCounter", latest);
+        _logger.LogInformation("[gRPC] Count: {Count}, RecordTime: {RecordTime}", latest.Count, latest.LocalRecordTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
+
         return new Common.Proto.CounterReply
         {
           MessageType = Common.Proto.Type.Success
@@ -85,7 +83,7 @@ namespace Bff.Services
       }
       catch (Exception e)
       {
-        _logger.LogError(e.Message);
+        _logger.LogError(e.StackTrace);
         return new Common.Proto.CounterReply
         {
           MessageType = Common.Proto.Type.Failure,

@@ -87,14 +87,14 @@ namespace EdgeNode.Services
             {
               NodeId = record.NodeId,
               Count = record.Count,
-              RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(record.RecordTime)
+              UtcRecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(record.LocalRecordTime.ToUniversalTime())
             });
           }
           sendCounters.Add(new Common.Proto.CounterRequest
           {
             NodeId = _serviceSettings.NodeId,
             Count = count,
-            RecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.Now.ToUniversalTime())
+            UtcRecordTime = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.Now.ToUniversalTime())
           });
           var stream = client.Count();
           await stream.RequestStream.WriteAsync(new CounterRequests
@@ -123,7 +123,7 @@ namespace EdgeNode.Services
           {
             NodeId = _serviceSettings.NodeId,
             Count = count,
-            RecordTime = DateTime.UtcNow
+            LocalRecordTime = DateTime.Now
           });
           await dbContext.SaveChangesAsync();
           _logger.LogWarning("[gRPC] failed. Recorded to localDb: {Count}", count);
