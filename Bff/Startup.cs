@@ -30,8 +30,9 @@ namespace Bff
       services.AddGrpc();
       services.AddGrpcReflection();
 
-      // dbcontext
+      // dbcontexts
       services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Data Source=bff.db"));
+      services.AddDbContext<MovieDbContext>(options => options.UseSqlite("Data Source=movie.db"));
 
       // cors
       services.AddCors(options =>

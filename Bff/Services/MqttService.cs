@@ -158,8 +158,17 @@ namespace Bff.Services
       try
       {
         using var scope = _scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
         var eventSender = scope.ServiceProvider.GetRequiredService<ITopicEventSender>();
         var image = handler.ApplicationMessage.Payload;
+        var now = DateTime.Now;
+        await dbContext.Frames.AddAsync(new Frame
+        {
+          Image = image,
+          LocalRecordTime = now
+        });
+        dbContext.Frames.RemoveRange(dbContext.Frames.Where(f => f.LocalRecordTime < now.AddMinutes(-1)));
+        await dbContext.SaveChangesAsync();
         await eventSender.SendAsync("MovieFrameBase64", Convert.ToBase64String(image));
         _logger.LogTrace("[MQTT] Frame Image: {Image}", image);
       }
