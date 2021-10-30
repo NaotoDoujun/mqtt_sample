@@ -32,8 +32,8 @@ services:
     container_name: EdgeNode
     depends_on: 
       - broker
-  camnode:
-    image: camnode
-    container_name: CamNode
-    depends_on: 
-      - broker
+#  camnode:
+#    image: camnode
+#    container_name: CamNode
+#    depends_on: 
+#      - broker
