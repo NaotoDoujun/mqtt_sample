@@ -31,6 +31,7 @@ docker build -t bff -f Bff/Dockerfile .
 ```
 
 ### Front
+note: material-ui/4.11.5 has tablepagination issue.  
 ```
 docker build -t front -f Front/Dockerfile .
 ```
